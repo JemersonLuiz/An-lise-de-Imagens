@@ -92,7 +92,10 @@ def exibir_resultado(foto):
                 st.rerun()
             return
 
-        if escore < LIMIAR:
+        if escore is None:
+            st.subheader("Resíduo não identificado")
+            st.write("Fotografe de perto o item que você quer analisar, com um único objeto em destaque.")
+        elif escore < LIMIAR:
             st.subheader("Identificação inconclusiva")
             st.write("Tente outra foto com um único objeto, mais perto e em um fundo simples.")
         elif material is None:
