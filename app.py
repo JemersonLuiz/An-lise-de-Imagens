@@ -21,6 +21,11 @@ def selecionar_amostra(nome=None):
     st.session_state.amostra = nome
 
 
+def avancar_amostra(passo):
+    atual = st.session_state.get("indice_amostra", 0)
+    st.session_state.indice_amostra = (atual + passo) % len(AMOSTRAS)
+
+
 def exibir_abertura(inicio):
     destino, rotulo = ("amostras", "Amostras") if inicio else ("resultado", "Resultado")
     st.html(f"""
@@ -43,17 +48,24 @@ def exibir_abertura(inicio):
 
 
 def exibir_galeria():
+    indice = st.session_state.get("indice_amostra", 0)
+    nome, arquivo = tuple(AMOSTRAS.items())[indice]
     with st.container(key="galeria"):
-        st.divider()
-        st.header("Testar com uma amostra", anchor="amostras")
-        for coluna, (nome, arquivo) in zip(st.columns(3), AMOSTRAS.items()):
-            with coluna:
-                st.image(str(RAIZ / "amostras" / arquivo), width="stretch", alt=nome)
-                st.button(nome, on_click=selecionar_amostra, args=(nome,), width="stretch")
+        st.header("Explore as amostras", anchor="amostras")
+        previa, ficha = st.columns([1.1, 1], gap="large", vertical_alignment="center")
+        with previa.container(key=f"foto_amostra_{indice}"):
+            st.image(str(RAIZ / "amostras" / arquivo), width="stretch", alt=nome)
+        with ficha:
+            st.html(f"""<div class="ficha" aria-live="polite" aria-atomic="true">
+                <p>Amostra {indice + 1} de {len(AMOSTRAS)}</p><h3>{nome}</h3></div>""")
+            st.button("Analisar esta amostra", key="analisar_amostra", type="primary",
+                      on_click=selecionar_amostra, args=(nome,))
+            with st.container(horizontal=True, key="navegar_amostras"):
+                st.button("← Anterior", on_click=avancar_amostra, args=(-1,))
+                st.button("Próxima →", on_click=avancar_amostra, args=(1,))
 
 
 def exibir_resultado(foto):
-    st.divider()
     st.header("Resultado da triagem", anchor="resultado")
     try:
         imagem = ler_foto(foto)
@@ -64,7 +76,7 @@ def exibir_resultado(foto):
         st.error(str(erro))
         return
 
-    previa, leitura = st.columns([1.1, 1], gap="large")
+    previa, leitura = st.columns([1.1, 1], gap="large", vertical_alignment="center")
     with previa:
         miniatura = imagem.copy()
         miniatura.thumbnail((800, 800))
@@ -87,8 +99,9 @@ def exibir_resultado(foto):
             st.subheader("Fora das categorias")
             st.write("A rede associou a imagem a um resíduo fora dos cinco materiais da triagem.")
         else:
+            st.caption("Material identificado")
             st.subheader(material)
-            st.write(f"Escore do modelo · {escore:.0%}")
+            st.progress(min(1.0, escore), text=f"Escore do modelo · {escore:.0%}")
 
 
 st.html(RAIZ / "interface.css")
@@ -97,19 +110,26 @@ inicio = amostra is None and st.session_state.get("fotografia") is None
 exibir_abertura(inicio)
 
 with st.container(key="ferramenta"):
-    st.header("Analisar uma foto", anchor="analisar")
-    st.write("Enquadre um único objeto e use boa iluminação. Envie até 12 MB e 24 megapixels.")
-    foto = st.file_uploader(
-        "Selecionar fotografia",
-        type=["jpg", "jpeg", "png", "webp", "bmp"],
-        max_upload_size=12,
-        on_change=selecionar_amostra,
-        key="fotografia",
-    )
+    with st.container(key="envio"):
+        instrucao, entrada = st.columns([1, 1.15], gap="large", vertical_alignment="center")
+        with instrucao:
+            st.header("Analise sua foto", anchor="analisar")
+            st.write("Enquadre um único objeto em boa luz. A rede identifica o material pela fotografia.")
+        with entrada:
+            foto = st.file_uploader(
+                "Arraste a foto aqui ou selecione um arquivo",
+                type=["jpg", "jpeg", "png", "webp", "bmp"],
+                max_upload_size=12,
+                on_change=selecionar_amostra,
+                key="fotografia",
+            )
+            st.caption("Até 12 MB e 24 megapixels por foto.")
     if foto is None and amostra is None:
         exibir_galeria()
     else:
         if foto is None:
             foto = BytesIO((RAIZ / "amostras" / AMOSTRAS[amostra]).read_bytes())
-            st.button("Trocar amostra", on_click=selecionar_amostra)
-        exibir_resultado(foto)
+        with st.container(key="resultado_triagem"):
+            exibir_resultado(foto)
+            if amostra is not None:
+                st.button("Voltar às amostras", on_click=selecionar_amostra)

@@ -66,9 +66,9 @@
     letter-spacing: -.04em;
 }
 .st-key-ferramenta h2 { font-size: clamp(2rem, 3.5vw, 3.1rem); }
-.st-key-ferramenta hr { border-color: #d4ccbf; margin: 1.65rem 0; }
-.st-key-galeria .stButton button { justify-content: space-between; border-width: 0 0 1px; text-align: left; background: transparent; padding: .75rem 0; }
-.st-key-galeria .stButton button::after { content: "→"; }
+
+
+
 @media (max-width: 650px) {
     .st-key-ferramenta, .barra-conteudo, .capa-conteudo { width: 90%; }
     .barra-conteudo { min-height: 57px; }
@@ -77,4 +77,94 @@
     .capa { min-height: 470px; background-position: 62% center;
         background-image: linear-gradient(0deg, #22170ce0, #21170d19 82%), url("app/static/materiais.webp"); }
     .capa-conteudo { padding-bottom: 2rem; }
+}
+
+.st-key-envio { padding: 0 0 clamp(2.25rem, 5vw, 4rem); }
+.st-key-envio h2, .st-key-galeria h2, .st-key-resultado_triagem h2 {
+    padding: 0;
+    line-height: 1.1;
+}
+.st-key-envio [data-testid="stMarkdownContainer"] p { max-width: 43ch; }
+.st-key-envio [data-testid="stFileUploaderDropzone"] {
+    min-height: 6.25rem;
+    border: 1.5px dashed #9e8571;
+    background: #f2ede4;
+    padding: 1rem;
+    transition: border-color .2s, background .2s;
+}
+.st-key-envio [data-testid="stFileUploaderDropzone"]:is(:hover, :focus-within) {
+    border-color: #91452d;
+    background: #ebe0d0;
+}
+.st-key-envio [data-testid="stFileUploaderDropzone"] button {
+    background: #733d2d;
+    color: white;
+    border-color: #733d2d;
+}
+.st-key-galeria, .st-key-resultado_triagem {
+    padding: clamp(1.4rem, 4vw, 3.4rem);
+    gap: clamp(1.25rem, 3vw, 2.2rem);
+}
+.st-key-galeria {
+    background: #302a24;
+    color: #f9f4eb;
+    border-top: 4px solid #b77753;
+}
+.st-key-galeria h2, .st-key-galeria .ficha h3 { color: inherit; }
+.st-key-galeria .ficha p {
+    color: #dbc6af;
+    font: 600 .75rem/1.4 system-ui, sans-serif;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin: 0 0 .85rem;
+}
+.st-key-galeria .ficha h3 {
+    font: italic clamp(2.2rem, 4.6vw, 4.2rem)/1.06 Georgia, serif;
+    margin: 0;
+    padding: 0;
+    letter-spacing: -.05em;
+}
+.st-key-galeria [data-testid="stImage"] img {
+    aspect-ratio: 4 / 3;
+    object-fit: contain;
+    background: #ece5da;
+    border: clamp(.45rem, 1vw, .85rem) solid #e9e1d5;
+}
+.st-key-analisar_amostra button { padding: .8rem 1.25rem; }
+.st-key-navegar_amostras { padding-top: .8rem; gap: .55rem; }
+.st-key-navegar_amostras button {
+    color: #f9f4eb;
+    background: transparent;
+    border-color: #9d8978;
+    min-height: 44px;
+}
+.st-key-navegar_amostras button:hover, .st-key-navegar_amostras button:focus-visible {
+    background: #59493c;
+    color: white;
+    border-color: #f1d8be;
+}
+.st-key-resultado_triagem {
+    background: #f1ebdf;
+    border-left: .3rem solid #995237;
+}
+.st-key-resultado_triagem [data-testid="stImage"] img {
+    max-height: 25rem;
+    object-fit: contain;
+}
+.st-key-resultado_triagem h3 { font-size: clamp(2rem, 4vw, 3.6rem); line-height: 1.1; }
+@media (prefers-reduced-motion: no-preference) {
+    @keyframes revelar-amostra {
+        from { opacity: .55; transform: translateX(.65rem); }
+        to { opacity: 1; transform: none; }
+    }
+    [class*="st-key-foto_amostra_"], .st-key-resultado_triagem {
+        animation: revelar-amostra .28s ease-out;
+    }
+    .st-key-galeria button { transition: transform .18s, background-color .18s; }
+    .st-key-galeria button:hover { transform: translateY(-2px); }
+    .st-key-galeria button:active { transform: translateY(1px); }
+}
+@media (max-width: 650px) {
+    .st-key-galeria [data-testid="stImage"] img { max-height: 14rem; }
+    .st-key-envio [data-testid="stFileUploaderDropzone"] { min-height: 5rem; }
 }
