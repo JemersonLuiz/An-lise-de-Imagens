@@ -1,57 +1,83 @@
+import logging
+from io import BytesIO
 from pathlib import Path
-from tempfile import NamedTemporaryFile
 
 import streamlit as st
+from PIL import Image
 
-from src.utils import CLASSES_PATH, MODEL_PATH, resolve_project_path
+from classificador import LIMIAR, carregar_rede, classificar, ler_foto
+
+st.set_page_config(page_title="Triagem de materiais", layout="centered")
+rede_em_cache = st.cache_resource(show_spinner=False)(carregar_rede)
+AMOSTRAS = {
+    "Lata de conserva": "metal.jpg",
+    "Jornal dobrado": "papel.jpg",
+    "Garrafa âmbar": "vidro.jpg",
+}
+PASTA = Path(__file__).parent / "amostras"
 
 
-def model_is_ready() -> bool:
-    return resolve_project_path(MODEL_PATH).exists() and resolve_project_path(CLASSES_PATH).exists()
+def selecionar_amostra(nome=None):
+    st.session_state.amostra = nome
 
+st.title("Triagem de materiais")
+st.write("Fotografe um único resíduo para identificar papel, plástico, metal, vidro ou material orgânico.")
 
-def save_uploaded_file(uploaded_file) -> Path:
-    suffix = Path(uploaded_file.name).suffix or ".jpg"
-    with NamedTemporaryFile(delete=False, suffix=suffix) as temporary_file:
-        temporary_file.write(uploaded_file.getbuffer())
-        return Path(temporary_file.name)
-
-
-st.set_page_config(page_title="Classificador de Residuos com IA", layout="centered")
-st.title("Classificador de Res\u00edduos com IA")
-st.write(
-    "Envie uma imagem de um residuo reciclavel para receber a classe prevista "
-    "e a confianca do modelo treinado."
+foto = st.file_uploader(
+    "Selecionar fotografia",
+    type=["jpg", "jpeg", "png", "webp", "bmp"],
+    max_upload_size=12,
+    on_change=selecionar_amostra,
+    help="Até 12 MB e 24 megapixels. Enquadre o objeto inteiro e use boa iluminação.",
 )
+amostra = st.session_state.get("amostra")
+if foto is None and amostra is None:
+    st.divider()
+    st.subheader("Testar com uma amostra")
+    for coluna, (nome, arquivo) in zip(st.columns(3), AMOSTRAS.items()):
+        with coluna:
+            st.image(str(PASTA / arquivo), width="stretch", alt=nome)
+            st.button(nome, on_click=selecionar_amostra, args=(nome,), width="stretch")
+    st.stop()
 
-if not model_is_ready():
-    st.warning("Modelo ainda nao treinado. Execute `python src/train.py` antes de usar a interface.")
+if foto is None:
+    foto = BytesIO((PASTA / AMOSTRAS[amostra]).read_bytes())
+    st.button("Trocar amostra", on_click=selecionar_amostra)
 
-uploaded_file = st.file_uploader(
-    "Envie uma imagem",
-    type=["jpg", "jpeg", "png", "bmp", "webp"],
-)
+try:
+    imagem = ler_foto(foto)
+except (OSError, Image.DecompressionBombError, SyntaxError):
+    st.error("Não foi possível abrir a foto. Escolha uma imagem JPEG, PNG, WebP ou BMP válida.")
+    st.stop()
+except ValueError as erro:
+    st.error(str(erro))
+    st.stop()
 
-if uploaded_file is not None:
-    st.image(uploaded_file, caption="Imagem enviada", use_container_width=True)
+st.divider()
+previa, leitura = st.columns([1.1, 1], gap="large")
+with previa:
+    miniatura = imagem.copy()
+    miniatura.thumbnail((800, 800))
+    st.image(miniatura, width="stretch", alt="Fotografia enviada para classificação")
 
-    if model_is_ready():
-        temporary_path = save_uploaded_file(uploaded_file)
-        try:
-            from src.predict import predict_image
+with leitura:
+    st.caption("RESULTADO DA TRIAGEM")
+    try:
+        with st.spinner("Analisando a fotografia…"):
+            material, escore = classificar(rede_em_cache(), imagem)
+    except Exception:
+        logging.exception("Falha ao carregar ou executar o classificador")
+        st.error("Classificador indisponível. O primeiro uso precisa de internet para baixar o modelo.")
+        if st.button("Tentar novamente"):
+            st.rerun()
+        st.stop()
 
-            with st.spinner("Processando imagem..."):
-                result = predict_image(temporary_path)
-
-            st.subheader("Resultado")
-            st.write(f"Classe prevista: **{result['classe_prevista']}**")
-            st.write(f"Confianca: **{result['confianca']:.2f}%**")
-
-            st.subheader("Probabilidades")
-            for class_name, probability in result["probabilidades"].items():
-                st.write(f"{class_name}: {probability:.2f}%")
-                st.progress(min(max(probability / 100, 0), 1))
-        except Exception as exc:
-            st.error(f"Nao foi possivel classificar a imagem: {exc}")
-        finally:
-            temporary_path.unlink(missing_ok=True)
+    if escore < LIMIAR:
+        st.subheader("Identificação inconclusiva")
+        st.write("Tente outra foto com um único objeto, mais perto e em um fundo simples.")
+    elif material is None:
+        st.subheader("Fora das categorias")
+        st.write("A rede associou a imagem a um resíduo fora dos cinco materiais da triagem.")
+    else:
+        st.subheader(material)
+        st.write(f"Escore do modelo · {escore:.0%}")

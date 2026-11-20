@@ -1,166 +1,32 @@
-# Classificador de Residuos com IA
+# Triagem de materiais
 
-## Descricao
+Aplicação em Python para identificar o material predominante em uma foto de resíduo. Aceita papel (incluindo papelão), plástico, metal, vidro e orgânico. Envie uma foto ou escolha uma das três amostras para experimentar.
 
-Projeto educacional de Visao Computacional para classificar imagens de residuos reciclaveis usando aprendizado por transferencia com MobileNetV2.
+## Executar
 
-O usuario envia uma imagem e o sistema retorna a categoria prevista, a confianca do modelo e a probabilidade de cada classe.
+Na pasta do repositório, com Python 3.13:
 
-## Objetivo
-
-Criar uma aplicacao completa de Machine Learning capaz de:
-
-- organizar imagens por categorias;
-- treinar um modelo de classificacao de imagens;
-- salvar o modelo treinado;
-- prever novas imagens;
-- exibir uma interface web simples com Streamlit.
-
-## Tecnologias Utilizadas
-
-- Python
-- TensorFlow / Keras
-- MobileNetV2
-- Streamlit
-- Pillow
-- NumPy
-- Matplotlib
-- Scikit-learn
-
-## Estrutura do Projeto
-
-```text
-classificador-residuos-ia/
-|-- data/
-|   |-- train/
-|   |   |-- papel/
-|   |   |-- plastico/
-|   |   `-- metal/
-|   `-- validation/
-|       |-- papel/
-|       |-- plastico/
-|       `-- metal/
-|-- models/
-|-- src/
-|   |-- train.py
-|   |-- predict.py
-|   |-- evaluate.py
-|   `-- utils.py
-|-- app.py
-|-- requirements.txt
-|-- .gitignore
-`-- README.md
+```sh
+python -m venv .venv
 ```
 
-## Como Organizar o Dataset
+Ative o ambiente com `.venv\Scripts\Activate.ps1` no PowerShell ou `source .venv/bin/activate` no Linux/macOS. Em seguida:
 
-Coloque as imagens manualmente nas pastas abaixo antes de treinar:
-
-```text
-data/train/papel/
-data/train/plastico/
-data/train/metal/
-
-data/validation/papel/
-data/validation/plastico/
-data/validation/metal/
+```sh
+python -m pip install -r requirements.txt
+python -m streamlit run app.py
 ```
 
-Para adicionar novas classes no futuro, crie a mesma pasta dentro de `data/train/` e `data/validation/`.
+Abra o endereço exibido no terminal. Na primeira classificação, a aplicação baixa cerca de 5,8 MB de pesos do Hugging Face. A revisão fica armazenada no cache local e pode ser reutilizada offline. A foto é processada em memória na máquina que executa o Streamlit.
 
-## Como Instalar
+## Como a classificação funciona
 
-```bash
-git clone https://github.com/seu-usuario/classificador-residuos-ia.git
-cd classificador-residuos-ia
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-```
+`app.py` cuida do envio, das amostras e da apresentação. `classificador.py` carrega a rede pré-treinada [WasteWise YOLOv8n-cls](https://huggingface.co/SriramRokkam/wastewise-garbage-cls/tree/a30c36c6b181ac0d2eb387bbd4f6d4a5b88ee078) e executa a inferência em CPU com ONNX Runtime. A aplicação corrige a orientação da foto, converte para RGB e envia à rede um tensor de 224 × 224 pixels com valores entre 0 e 1.
 
-No Linux ou Mac, ative o ambiente com:
+A rede produz oito escores. A aplicação soma papel e papelão em **Papel**, e bateria e rejeitos em **Fora das categorias**. As demais saídas correspondem a um material cada. Se o maior escore agrupado ficar abaixo de 65%, a tela mostra **Identificação inconclusiva**. Esse limiar é uma escolha de interface e ainda precisa de calibração para uso operacional.
 
-```bash
-source venv/bin/activate
-```
+Use uma foto de um objeto por vez. A rede classifica a imagem inteira e pode confundir materiais semelhantes, mesmo com escore alto. Uma imagem sem resíduos também pode receber um rótulo. O escore expressa a preferência da rede naquela foto.
 
-## Como Treinar o Modelo
+## Amostras
 
-Antes de treinar, coloque as imagens dentro da pasta `data/`.
-
-Depois execute:
-
-```bash
-python src/train.py
-```
-
-Ao final, o modelo sera salvo em:
-
-```text
-models/modelo_residuos.keras
-```
-
-Os nomes das classes serao salvos em:
-
-```text
-models/classes.txt
-```
-
-## Como Executar a Aplicacao
-
-```bash
-streamlit run app.py
-```
-
-Depois abra o endereco exibido pelo Streamlit no navegador.
-
-## Exemplo de Uso
-
-Entrada:
-
-```text
-Imagem de uma garrafa plastica
-```
-
-Saida esperada:
-
-```text
-Classe prevista: plastico
-Confianca: 92.41%
-
-Probabilidades:
-papel: 3.20%
-plastico: 92.41%
-metal: 4.39%
-```
-
-## Avaliacao do Modelo
-
-Para avaliar o modelo treinado:
-
-```bash
-python src/evaluate.py
-```
-
-O script mostra acuracia, precision, recall, f1-score e salva a matriz de confusao em:
-
-```text
-models/matriz_confusao.png
-```
-
-## Possiveis Melhorias
-
-- Aumentar a quantidade de imagens.
-- Adicionar novas categorias, como vidro e organico.
-- Melhorar o tratamento de imagens de baixa qualidade.
-- Criar uma API para integracao com outros sistemas.
-- Fazer deploy da aplicacao na nuvem.
-- Usar camera em tempo real.
-
-## Aviso
-
-Este projeto tem finalidade educacional e experimental. Ele nao deve ser usado como sistema profissional de reciclagem sem uma base de dados maior, testes mais rigorosos e validacao em ambiente real.
-
-## Autor
-
-Desenvolvido por Jemerson Luiz.
+As três fotografias de demonstração vêm do [TrashNet](https://github.com/garythung/trashnet), arquivos `metal1.jpg`, `paper1.jpg` e `glass1.jpg`. A [licença das imagens](amostras/LICENSE) acompanha as cópias. As amostras passam pela mesma rede usada para as fotos enviadas.
