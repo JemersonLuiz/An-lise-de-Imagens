@@ -21,7 +21,7 @@ Abra o endereço exibido no terminal. Na primeira classificação, a aplicação
 
 ## Como a classificação funciona
 
-`app.py` cuida do envio, das amostras e da apresentação. `classificador.py` carrega a rede pré-treinada [WasteWise YOLOv8n-cls](https://huggingface.co/SriramRokkam/wastewise-garbage-cls/tree/a30c36c6b181ac0d2eb387bbd4f6d4a5b88ee078) e executa a inferência em CPU com ONNX Runtime. A aplicação corrige a orientação da foto, converte para RGB e envia à rede um tensor de 224 × 224 pixels com valores entre 0 e 1.
+`app.py` cuida do envio, das amostras e da apresentação. `classificador.py` carrega a rede pré-treinada [WasteWise YOLOv8n-cls](https://huggingface.co/SriramRokkam/wastewise-garbage-cls/tree/a30c36c6b181ac0d2eb387bbd4f6d4a5b88ee078) e executa a inferência em CPU com ONNX Runtime. A folha de estilos está em `interface.css`. A capa ilustrativa em `static/materiais.webp` foi gerada para o projeto. A aplicação corrige a orientação da foto, converte para RGB e envia à rede um tensor de 224 × 224 pixels com valores entre 0 e 1.
 
 A rede produz oito escores. A aplicação soma papel e papelão em **Papel**, e bateria e rejeitos em **Fora das categorias**. As demais saídas correspondem a um material cada. Se o maior escore agrupado ficar abaixo de 65%, a tela mostra **Identificação inconclusiva**. Esse limiar é uma escolha de interface e ainda precisa de calibração para uso operacional.
 

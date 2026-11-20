@@ -1,0 +1,80 @@
+/* A capa ocupa a largura da janela. A ferramenta usa a mesma margem do cabeçalho. */
+[data-testid="stMainBlockContainer"] {
+    max-width: none;
+    padding: 0 0 4rem;
+}
+[data-testid="stHeader"] { height: 0; }
+[data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"] { gap: 0; }
+.st-key-ferramenta, .barra-conteudo, .capa-conteudo {
+    width: min(1120px, 84%);
+    margin-inline: auto;
+}
+.barra-triagem { background: #eee9e0; border-bottom: 1px solid #d9d2c8; }
+.barra-conteudo {
+    min-height: 66px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+.barra-conteudo a, .capa a { text-decoration: none; }
+.barra-conteudo .marca {
+    color: #362d27;
+    font: 1.55rem Georgia, serif;
+    letter-spacing: -.045em;
+}
+.barra-links { display: flex; align-items: center; gap: clamp(1rem, 3vw, 3rem); }
+.barra-links a, .capa .acao, .st-key-ferramenta .stButton button {
+    font-size: .75rem;
+    letter-spacing: .085em;
+    font-weight: 600;
+}
+.barra-links a { color: #544a42; text-transform: uppercase; }
+.barra-links a:hover { text-decoration: underline; text-underline-offset: .35em; }
+.capa {
+    display: flex;
+    align-items: end;
+    min-height: clamp(440px, 69vh, 730px);
+    background: linear-gradient(90deg, #1e160fc7, #271b1226 69%),
+                url("app/static/materiais.webp") center / cover;
+}
+.capa-conteudo { padding: clamp(2.4rem, 5vw, 5rem) 0; color: #fffaf1; }
+.capa h1 {
+    font: normal clamp(3.4rem, 6vw, 6.4rem)/.98 Georgia, serif;
+    letter-spacing: -.055em;
+    color: inherit;
+    padding: 0;
+    margin: 0;
+}
+.capa h1 em { display: block; font-weight: 400; }
+.capa p { max-width: 38ch; line-height: 1.5; margin: 1.35rem 0; color: inherit; }
+.capa .acao {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.75rem;
+    background: #94452e;
+    color: white;
+    padding: .95rem 1.35rem;
+    text-transform: uppercase;
+}
+.capa .acao:hover { background: #7a3827; }
+.capa .acao:focus-visible, .barra-conteudo a:focus-visible { outline: 3px solid #d78e55; outline-offset: 4px; }
+.st-key-ferramenta { padding-top: clamp(2rem, 4vw, 4rem); }
+.st-key-ferramenta h2, .st-key-ferramenta h3 {
+    font-family: Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -.04em;
+}
+.st-key-ferramenta h2 { font-size: clamp(2rem, 3.5vw, 3.1rem); }
+.st-key-ferramenta hr { border-color: #d4ccbf; margin: 1.65rem 0; }
+.st-key-galeria .stButton button { justify-content: space-between; border-width: 0 0 1px; text-align: left; background: transparent; padding: .75rem 0; }
+.st-key-galeria .stButton button::after { content: "→"; }
+@media (max-width: 650px) {
+    .st-key-ferramenta, .barra-conteudo, .capa-conteudo { width: 90%; }
+    .barra-conteudo { min-height: 57px; }
+    .barra-links { gap: .85rem; }
+    .barra-links a { font-size: .65rem; }
+    .capa { min-height: 470px; background-position: 62% center;
+        background-image: linear-gradient(0deg, #22170ce0, #21170d19 82%), url("app/static/materiais.webp"); }
+    .capa-conteudo { padding-bottom: 2rem; }
+}
